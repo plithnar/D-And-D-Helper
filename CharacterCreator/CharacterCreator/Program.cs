@@ -15,26 +15,57 @@ namespace CharacterCreator
 
         static void Main(string[] args)
         {
-            var input = ' ';
-            while(input != 'x')
+            EnterMenuLoop();
+        }
+
+        static void EnterMenuLoop()
+        {
+            var input = DisplayMenu();
+            while (true)
             {
-
-                RollCharacterStats();
-
-                Console.WriteLine("Enter 'x' to exit");
-                var line = Console.ReadLine();
-                if(line.Length > 0)
+                switch(input)
                 {
-                    input = line[0];
+                    case 'c':
+                        // Do configure stuff
+                        break;
+                    case 'r':
+                        RollCharacterStats();
+                        break;
+                    case 'h':
+                        // Configure help options
+                        break;
+                    case 'x':
+                        return;
+                    default:
+                        Console.WriteLine("ERROR: '" + input + "' is not a valid option");
+                        break;
                 }
-                Console.WriteLine(input);
+                input = DisplayMenu();
             }
+
+        }
+
+        static char DisplayMenu()
+        {
+            var input = ' ';
+            Console.WriteLine("(c): Configure options");
+            Console.WriteLine("(r): Roll character stats");
+            Console.WriteLine("(h): Display help information");
+            Console.WriteLine("(x): Exit program");
+            Console.Write("User input: ");
+            var line = Console.ReadLine();
+            if (line.Length > 0)
+            {
+                input = line[0];
+            }
+            // For readability
+            Console.WriteLine();
+            return input;
         }
 
         static void RollCharacterStats(int minSumStats = 0)
         {
-            var statResults = new List<int>();
-
+            Console.WriteLine("Rolled Stats:");
             for (int i = 0; i < NUM_STATS; i++)
             {
                 Console.WriteLine(RollSingleStat());
