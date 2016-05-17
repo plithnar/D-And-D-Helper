@@ -12,6 +12,8 @@ namespace CharacterCreator
         private const int MIN_ROLLS_FOR_STAT = 3;
         private const int NUM_STATS          = 6;
         private static Random _rng = new Random();
+        private static Settings _settings = new Settings();
+
 
         static void Main(string[] args)
         {
@@ -26,7 +28,7 @@ namespace CharacterCreator
                 switch(input)
                 {
                     case 'c':
-                        // Do configure stuff
+                        ChangeSettings();
                         break;
                     case 'r':
                         RollCharacterStats();
@@ -63,23 +65,35 @@ namespace CharacterCreator
             return input;
         }
 
-        static void RollCharacterStats(int minSumStats = 0)
+        static void RollCharacterStats()
         {
+            var rolledStats = new List<int>();
             Console.WriteLine("Rolled Stats:");
-            for (int i = 0; i < NUM_STATS; i++)
+            do
             {
-                Console.WriteLine(RollSingleStat());
-            }
+                rolledStats.Clear();
+                for (int i = 0; i < NUM_STATS; i++)
+                {
+                    var stat = RollSingleStat();
+                    Console.WriteLine(stat);
+                    rolledStats.Add(stat);
+                }
+                if(rolledStats.Sum() < _settings.MinStatSum)
+                {
+                    Console.WriteLine("Sum stats below threshhold: Re-rolling");
+                }
+            } while (rolledStats.Sum() < _settings.MinStatSum);
+            Console.WriteLine("Sum of rolled stats: " + rolledStats.Sum());
             // Whitespace for readability
             Console.WriteLine();
             
         }
 
-        static int RollSingleStat(int numRolls = 4)
+        static int RollSingleStat()
         {
             var rollResults = new List<int>();
 
-            if(numRolls < MIN_ROLLS_FOR_STAT)
+            if(_settings.NumRolls < MIN_ROLLS_FOR_STAT)
             {
                 Console.WriteLine("ERROR: Character creation requires at least 3 tolls for a single stat");
                 return -1;
@@ -87,16 +101,56 @@ namespace CharacterCreator
 
             var die = new Die(_rng, 6);
 
-            for(int i = 0; i < numRolls; i++)
+            for(int i = 0; i < _settings.NumRolls; i++)
             {
                 rollResults.Add(die.Roll());
             }
 
             rollResults.Sort();
             rollResults.Reverse();
-            rollResults.RemoveRange(MIN_ROLLS_FOR_STAT, numRolls - MIN_ROLLS_FOR_STAT);
+            rollResults.RemoveRange(MIN_ROLLS_FOR_STAT, _settings.NumRolls - MIN_ROLLS_FOR_STAT);
             
             return rollResults.Sum();
+        }
+
+        static void ChangeSettings()
+        {
+            while (true)
+            {
+                try
+                {
+                    Console.Write("Please enter the number of rolls for a single stat: ");
+                    var numRolls = Convert.ToInt32(Console.ReadLine());
+                    if (numRolls < 1)
+                    {
+                        throw new FormatException();
+                    }
+                    _settings.NumRolls = numRolls;
+                    break;
+                }
+                catch (FormatException e)
+                {
+                    Console.WriteLine("ERROR: Entry must be a positive integer value");
+                }
+            }
+            while (true)
+            {
+                try
+                {
+                    Console.Write("Please enter the minimum summed stat value: ");
+                    var minStatSum = Convert.ToInt32(Console.ReadLine());
+                    if (minStatSum < 0 || minStatSum > 108)
+                    {
+                        throw new FormatException();
+                    }
+                    _settings.MinStatSum = minStatSum;
+                    break;
+                }
+                catch (FormatException e)
+                {
+                    Console.WriteLine("ERROR: Entry must be an integer value between 0 and 108");
+                }
+            }
         }
     }
 }
